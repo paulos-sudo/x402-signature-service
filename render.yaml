@@ -1,0 +1,56 @@
+# Render Blueprint — x402-signature-service
+# Deploy: Repo auf GitHub pushen -> Render Dashboard -> "New +" -> "Blueprint".
+#
+# WICHTIG:
+#  * BASE_URL nach dem ersten Deploy auf die echte Render-URL setzen
+#    (z.B. https://x402-signature-service.onrender.com) und redeployen.
+#  * DOCUMENSO_API_TOKEN + DOCUMENSO_WEBHOOK_SECRET im Dashboard als Secrets setzen.
+#  * Persistente Disk erfordert einen bezahlten Instance-Typ (Starter reicht).
+#    Ohne Disk gehen offene Signaturanfragen bei jedem Deploy verloren.
+
+services:
+  - type: web
+    name: x402-signature-service
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-server-header
+    healthCheckPath: /health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      - key: APP_ENV
+        value: production
+      - key: PAY_TO_ADDRESS
+        value: "0xE72b85A97A6e19413D8b80633787Eda6d6237A77"
+      - key: X402_NETWORK
+        value: eip155:8453
+      - key: SIGNATURE_REQUEST_PRICE_USD
+        value: $0.50
+      - key: FACILITATOR_URL
+        value: https://facilitator.payai.network
+      - key: SERVICE_NAME
+        value: x402-signature-service
+      - key: DATABASE_PATH
+        value: /data/signature-service.db
+      - key: SIGNATURE_PROVIDER
+        value: documenso
+      - key: BASE_URL
+        sync: false
+      - key: DOCUMENSO_BASE_URL
+        value: https://app.documenso.com
+      - key: DOCUMENSO_API_TOKEN
+        sync: false
+      - key: DOCUMENSO_WEBHOOK_SECRET
+        sync: false
+      # Optional fuer automatisches Bazaar-Listing (Coinbase CDP):
+      # - key: CDP_API_KEY_ID
+      #   sync: false
+      # - key: CDP_API_KEY_SECRET
+      #   sync: false
+      # - key: FACILITATOR_URL
+      #   value: https://api.cdp.coinbase.com/platform/v2/x402

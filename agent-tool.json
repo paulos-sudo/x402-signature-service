@@ -1,0 +1,53 @@
+{
+  "name": "send_document_for_signature",
+  "description": "Send one PDF to one email recipient for simple electronic signature. The service emails the signer, tracks completion, and returns the completed signed PDF. Payment: x402 (USDC on Base) per call. The response contains a one-time accessToken (Bearer) and a statusUrl; poll the statusUrl until status is 'completed', then GET statusUrl + '/document' to download the signed PDF. Simple electronic signatures (SES) only — no QES/AES, no identity verification, no legal advice.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "documentName": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 150,
+        "description": "Human-readable document title shown to the signer"
+      },
+      "documentUrl": {
+        "type": "string",
+        "description": "HTTPS URL of the PDF to sign (max 5 MB). Provide either documentUrl OR documentBase64."
+      },
+      "documentBase64": {
+        "type": "string",
+        "description": "Base64-encoded PDF (max 5 MB decoded). Provide either documentUrl OR documentBase64."
+      },
+      "signer": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "email": { "type": "string", "format": "email" }
+        },
+        "required": ["name", "email"]
+      },
+      "message": {
+        "type": "string",
+        "maxLength": 2000,
+        "description": "Optional message included in the signature request email"
+      },
+      "expiresInDays": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 14,
+        "description": "Days until the signature request expires"
+      },
+      "externalReference": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Optional caller-side reference id, echoed back in responses"
+      }
+    },
+    "required": ["documentName", "signer"],
+    "oneOf": [
+      { "required": ["documentUrl"], "not": { "required": ["documentBase64"] } },
+      { "required": ["documentBase64"], "not": { "required": ["documentUrl"] } }
+    ]
+  }
+}
