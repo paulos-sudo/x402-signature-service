@@ -17,6 +17,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import os
 import secrets
 from datetime import timedelta
 from typing import Optional
@@ -111,6 +112,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         title="x402-signature-service",
         version=settings.VERSION,
         description=discovery.DESCRIPTION + "\n\n**Disclaimer:** " + DISCLAIMER,
+        contact={"name": "Paulos / Voiceagenten", "email": "paulos@voiceagenten.com"},
         lifespan=lifespan,
     )
     app.state.settings = settings
@@ -409,6 +411,15 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     async def landing() -> HTMLResponse:
         return HTMLResponse(_landing_html(settings))
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        from fastapi.responses import FileResponse
+
+        return FileResponse(
+            os.path.join(os.path.dirname(__file__), "static_favicon.ico"),
+            media_type="image/x-icon",
+        )
 
     return app
 
